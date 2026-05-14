@@ -2,37 +2,18 @@
 
 import { ref, onMounted, computed } from "vue";
 import { useFetch } from "../composables/useFetch.js";
-import { useApiCall } from '../composables/useApiCall.js';
+import { BASE_URL, PROXY_TOKEN } from "../config/api.js";
+import { useAppStore } from "../composables/useAppStore.js";
 
-const { call, loading: loadingCall } = useApiCall();
-
-
-const BASE_URL = "https://deno-hono-proxy.jferreyradev.deno.net";
-const PROXY_TOKEN = "9z4wMwmwnHZ6XLSYoE66A7y2RFlaCE9Vu6u32zXJ18";
-
-const { data, error, loading } = useFetch(`${BASE_URL}/api/backends`, {
+const { data, error, loading, fetchData } = useFetch(`${BASE_URL}/api/backends`, {
   method: 'GET',
-  headers: {
-    'Authorization': `Bearer ${PROXY_TOKEN}`
-  }
+  headers: { 'Authorization': `Bearer ${PROXY_TOKEN}` },
+  cacheMode: 'manual'
 })
 
+const { setGlobalStore, getGlobalStore } = useAppStore();
 
-const handlePing = async (item) => {
-  try {
-
-    console.log(`Haciendo ping a ${BASE_URL}${item.prefix}/ping...`);
-
-    const result = await call(`${BASE_URL}${item.prefix}/ping`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${PROXY_TOKEN}` }
-    });
-    console.log('Ping exitoso:', result);
-  } catch (err) {
-    console.error('Ping falló:', err);
-  }
-};
-
+const selectedItem = ref(null);
 
 
 // Transformar datos con computed
@@ -51,21 +32,12 @@ const metadata = [
   { label: 'Key', field: 'id' },
   { label: 'Nombre', field: 'name' },
   { label: 'URL', field: 'url' },
-  { label: 'Prefijo', field: 'prefix' },
+  { label: 'Prefijo', field: 'prefix' },  
 ];
 
-
-const handleRowClick = (item) => {
-  const { id, name, url, prefix } = item;
-  
-  console.log("===== ITEM SELECCIONADO =====");
-  console.log("ID:", id);
-  console.log("Nombre:", name);
-  console.log("URL:", url);
-  console.log("Prefijo:", prefix);
-  
-  // Hacer algo con los datos
-  handlePing(item);
+function handleClick(item) {
+  selectedItem.value = item;
+  setGlobalStore('selectedBackend', item);
 }
 
 </script>
@@ -93,11 +65,8 @@ const handleRowClick = (item) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in items" :key="item.id">
-              <td v-for="value in item" :key="value.id">{{value}}</td>             
-              <td> 
-                <button @click="handleRowClick(item)" class="btn btn-xs btn-outline btn-primary" > ping</button>
-             </td>
+            <tr v-for="item in items" :key="item.id" @click="handleClick(item)" class="cursor-pointer hover:bg-base-200">
+              <td v-for="value in item" :key="value.id">{{value}}</td> 
             </tr>
           </tbody>
         </table>
@@ -113,7 +82,13 @@ const handleRowClick = (item) => {
           {{ loading ? "Actualizando..." : "Actualizar Datos" }}
         </button>
       </div>
+
     </div>
+
+    <div>
+      {{ selectedItem }}
+    </div>
+
   </div>
 </template>
 
