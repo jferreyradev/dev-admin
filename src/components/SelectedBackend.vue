@@ -1,14 +1,15 @@
 <script setup>
-import { computed } from "vue";
-import { useAppStore } from "../composables/useAppStore.js";
-
-const { getGlobalStore } = useAppStore();
-
-const selectedName = computed(() => getGlobalStore("selectedBackend")?.name)
-
-
+const props = defineProps({
+  prefix: { type: String, required: true }
+})
 </script>
 
 <template>
-  <div class="status status-info animate-bounce"></div> {{ selectedName }}
+  <div class="text-right bottom-4 right-4 bg-base-200 shadow px-4 py-2 rounded text-sm z-50">
+    <span class="font-semibold">Ambiente: </span>
+    <button class="btn btn-xs btn-info" @click="console.log('Backend seleccionado:', prefix)">
+       {{ prefix }}
+    </button>
+     
+  </div>
 </template>
