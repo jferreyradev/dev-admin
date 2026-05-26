@@ -24,11 +24,53 @@ index.html           # Entrypoint (Vite root)
 src/
   main.js            # createApp(App).mount('#app')
   App.vue            # Root SFC
-  components/        # Single component: HelloWorld.vue
-  assets/            # Static images imported in SFCs
+  router.js          # Vue Router configuration
   style.css          # Tailwind + DaisyUI entrypoint
+  
+  config/            # Configuración central
+    api.js           # URLs, tokens, headers y autenticación
+    queries.js       # Catálogo de consultas/procedimientos SQL
+  
+  composables/       # Vue composables reutilizables
+    useApiCall.js    # HTTP básico con auth automática
+    useFetch.js      # HTTP con sistema de caché
+    useEndpoints.js  # Generador dinámico de endpoints
+    useQueries.js    # Ejecutor de consultas predefinidas
+    useAppStore.js   # Store global de la aplicación
+  
+  components/        # Componentes Vue
+    ApiConfig.vue    # UI para configurar URLs (local/producción)
+    ConnectionInfo.vue
+    DashBackends.vue
+    HomePage.vue
+    Navigation.vue
+    SelectedBackend.vue
+  
+  views/             # Vistas de la aplicación
+    AboutView.vue
+    HomeView.vue
+    QueryView.vue
+    ProcedureView.vue
+  
+  assets/            # Static images imported in SFCs
+
 public/              # Static assets served as-is (favicon.svg, icons.svg)
+API-GUIDE.md         # Documentación completa de arquitectura de API
 ```
+
+## API y Configuración
+
+El proyecto utiliza una arquitectura unificada de conexiones HTTP centralizada y reutilizable:
+
+- **`config/api.js`**: Configuración central (URLs, tokens, headers). Ver [API-GUIDE.md](./API-GUIDE.md)
+- **`useApiCall`**: Llamadas HTTP simples con autenticación automática
+- **`useFetch`**: Llamadas HTTP con sistema de caché (auto/manual/off)
+- **`useEndpoints`**: Genera URLs dinámicas según entorno (local/producción) y backend
+- **`useQueries`**: Ejecuta consultas SQL y procedimientos predefinidos
+
+**Configuración dinámica**: Toggle entre URL local (`http://localhost:3008`) y producción mediante `<ApiConfig />` en navbar.
+
+**Para detalles completos**: Ver [API-GUIDE.md](./API-GUIDE.md)
 
 ## Conventions
 

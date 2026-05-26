@@ -31,7 +31,7 @@ export function useAppStore() {
 
   const clearGlobalStore = (name) => {
     if (!name) return
-    globalStore.delete(name)
+    globalStore.value.delete(name)
   }
 
   return {

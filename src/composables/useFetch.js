@@ -1,4 +1,5 @@
 import { ref, onMounted, watch, toValue } from 'vue'
+import { getAuthHeaders } from '../config/api.js'
 
 // Cache global compartido entre todas las instancias del composable
 const cacheStore = new Map()
@@ -7,8 +8,9 @@ const cacheStore = new Map()
 // Parámetros:
 //   - url: URL del endpoint (puede ser reactiva)
 //   - options.method: Método HTTP (GET, POST, PUT, DELETE, etc.) - default: 'GET'
-//   - options.headers: Headers personalizados (se merge con headers por defecto)
+//   - options.headers: Headers personalizados (se mezclan con los headers estándar de autenticación)
 //   - options.body: Body del request (se convertirá a JSON automáticamente)
+//   - options.skipAuth: Si es true, no incluye headers de autenticación (default: false)
 //   - options.cacheMode: 'auto' | 'manual' | 'off' - default: 'auto'
 //   - options.cacheTime: Tiempo en ms para expiración (solo en modo 'auto') - default: 5 minutos
 // Retorna: { data, error, loading, fetchData, clearCache, refetch }
@@ -111,10 +113,17 @@ export function useFetch(url, options = {}) {
     abortController?.abort()
     abortController = new AbortController()
 
-    // Preparar headers: merge headers por defecto con custom headers
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers
+    // Preparar headers: usar headers de autenticación centralizados
+    let headers;
+    if (options.skipAuth) {
+      // Si se solicita sin auth, usar solo Content-Type y headers adicionales
+      headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+    } else {
+      // Por defecto, incluir autenticación
+      headers = getAuthHeaders(options.headers);
     }
 
     try {
@@ -197,32 +206,41 @@ export function useFetch(url, options = {}) {
     refetch      // Limpia cache y fuerza fetch nuevo
   }
 }
-
+// ============================================
+// EJEMPLOS DE USO
+// ============================================
 
 // Cache automático (expira en 5 minutos) - DEFAULT
 /*
+import { useFetch } from '@/composables/useFetch';
+import { getBaseUrl } from '@/config/api';
 
-const { data, loading, refetch } = useFetch(`${BASE_URL}/api/backends`, {
-  headers: { 'Authorization': `Bearer ${PROXY_TOKEN}` },
+const baseUrl = getBaseUrl();
+
+// Autenticación incluida automáticamente
+const { data, loading, refetch } = useFetch(`${baseUrl}/api/backends`, {
   cacheMode: 'auto',
   cacheTime: 5 * 60 * 1000
 })
 
 // Cache manual (nunca expira, solo cuando llames refetch)
-const { data, loading, refetch } = useFetch(`${BASE_URL}/api/backends`, {
-  headers: { 'Authorization': `Bearer ${PROXY_TOKEN}` },
+const { data, loading, refetch } = useFetch(`${baseUrl}/api/backends`, {
   cacheMode: 'manual'
 })
 
 // Sin cache
-const { data, loading, refetch } = useFetch(`${BASE_URL}/api/backends`, {
-  headers: { 'Authorization': `Bearer ${PROXY_TOKEN}` },
+const { data, loading, refetch } = useFetch(`${baseUrl}/api/backends`, {
   cacheMode: 'off'
+})
+
+// Sin autenticación (endpoints públicos)
+const { data } = useFetch(`${baseUrl}/public/info`, {
+  skipAuth: true
 })
 
 // En un componente, recargar datos cuando necesites:
 const handleDelete = async (item) => {
-  await call(`${BASE_URL}/api/backends/${item.id}`, { method: 'DELETE' })
+  await call(`${baseUrl}/api/backends/${item.id}`, { method: 'DELETE' })
   refetch() // Recarga los datos sin cache
 }
 

@@ -1,4 +1,6 @@
-<script setup></script>
+<script setup>
+import ApiConfig from "./ApiConfig.vue";
+</script>
 
 <template>
   <div class="navbar bg-base-100 shadow-sm">
@@ -10,6 +12,7 @@
         <li><router-link to="/">Home</router-link></li>
         <li><router-link to="/about">About</router-link></li>
         <li><router-link to="/query">Query</router-link></li>
+        <li><ApiConfig /></li>
       </ul>
     </div>
   </div>
